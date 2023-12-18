@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use clipboard_win::{get_clipboard_string, set_clipboard_string};
+use clipboard_win::{Clipboard, get_clipboard_string, set_clipboard_string};
 
 use crate::common::{ClipboardProvider, Result};
 
@@ -26,10 +26,19 @@ impl WindowsClipboardContext {
 
 impl ClipboardProvider for WindowsClipboardContext {
     fn get_contents(&mut self) -> Result<String> {
-        Ok(get_clipboard_string()?)
+        let clipstring = get_clipboard_string();
+        match clipstring {
+            Ok(_) => Ok(clipstring?),
+            Err(_) => Ok("".to_owned())
+        }
     }
 
     fn set_contents(&mut self, data: String) -> Result<()> {
-        Ok(set_clipboard_string(&data)?)
+        if data.len() > 0 {
+            Ok(set_clipboard_string(&data)?)
+        } else {
+            _ = Clipboard::new()?.empty()?;
+            Ok(())
+        }
     }
 }
